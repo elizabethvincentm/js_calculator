@@ -27,7 +27,6 @@ const keySet = [
 
 const isOperator = /[x/+-]/;
 const isOperand = /[\d]+|[.]/;
-const isNonNegOp = /[x/+]/;
 
 const calc = exprsn => {
   let result = exprsn.split(",");
@@ -107,18 +106,16 @@ class Calculator extends React.Component {
             output = prevState.input != "0" ? output + val : output;
             break;
           case ".":
-            output =
-              prevState.input.split("").find(x => x == ".") == undefined
-                ? input != ""
-                  ? output + "."
-                  : output + "0."
-                : output;
-            input =
-              input.split("").find(x => x == ".") == undefined
-                ? input != ""
-                  ? input + "."
-                  : input + "0."
-                : input;
+            output = /[.]/.test(prevState.input)
+              ? output
+              : input != ""
+              ? output + "."
+              : output + "0.";
+            input = !/[.]/.test(input)
+              ? input != ""
+                ? input + "."
+                : input + "0."
+              : input;
 
             break;
           default:
@@ -171,13 +168,13 @@ class Calculator extends React.Component {
   handleAction(val) {
     if (val === "AC") this.setState({ input: 0, output: "" });
     else {
-      let result = calc(this.state.output);
       this.setState(prevState => {
+        let result = prevState.evalStatus ? "" : calc(prevState.output);
         return {
           input: result,
           output:
             result != "" ? prevState.output + "=" + result : prevState.output,
-          evalStatus: result != "" ? true : false
+          evalStatus: result != "" ? true : prevState.evalStatus
         };
       });
     }
